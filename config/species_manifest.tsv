@@ -1,0 +1,10 @@
+#species_id	genus	species	panSN_prefix	fasta_path	tier	notes
+Cgar	Clarias	gariepinus	Cgar	/scratch/lt200308-agbsci/genomes/Cgar.fa.gz	core	focal species, 226-sample cohort
+Cmac	Clarias	macrocephalus	Cmac	/scratch/lt200308-agbsci/genomes/Cmac.fa.gz	core	sister pairwise comparison
+Cfus	Clarias	fuscus	Cfus	/scratch/lt200308-agbsci/genomes/Cfus.fa.gz	clarias_context	polarize ancestral state within Clarias
+Cbat	Clarias	batrachus	Cbat	/scratch/lt200308-agbsci/genomes/Cbat.fa.gz	clarias_context	polarize ancestral state within Clarias
+Capus	Clarias	apus	Capus	/scratch/lt200308-agbsci/genomes/Capus.fa.gz	clarias_context	if available
+Sglanis	Silurus	glanis	Sglanis	/scratch/lt200308-agbsci/genomes/Sglanis.fa.gz	far_outgroup	ANI too low for fine breakpoints; use only for polarization
+Sasotus	Silurus	asotus	Sasotus	/scratch/lt200308-agbsci/genomes/Sasotus.fa.gz	far_outgroup	replicate of Sglanis; drop unless specifically needed
+Tfulv	Tachysurus	fulvidraco	Tfulv	/scratch/lt200308-agbsci/genomes/Tfulv.fa.gz	far_outgroup	>80 Mya divergence; black box at synteny scale
+Tros	Trichomycterus	rosablanca	Tros	/scratch/lt200308-agbsci/genomes/Tros.fa.gz	deep_outgroup	~100 My cave catfish from Peru, oldest known catfish; use for fragment-level polarization via protein anchors only (STEP_09c), NOT for k-mer synteny (use -p 70 max)

@@ -1,0 +1,21 @@
+#species_id	accession	file_types
+# Accepts GCA_* (GenBank) or GCF_* (RefSeq) accessions.
+# file_types: comma-separated subset of fasta,gff,protein,cds  (or "all")
+#
+# Leave this file to guide STEP_00a_batch_download_genomes.sh.
+# Unknown/unreleased accessions will fail with a clean error; re-run to retry.
+#
+# --- KNOWN CATFISH REFERENCE ASSEMBLIES (as of Apr 2026) ---
+# Verify accessions at https://www.ncbi.nlm.nih.gov/datasets/genome/ before running.
+# Edit the species_id to match config/species_manifest.tsv.
+#
+#species_id	accession	file_types
+Cgar	GCF_024256425.1	fasta,gff,protein
+Cmac	GCF_019173215.1	fasta,gff,protein
+# Cfus	GCA_XXXXXXXXX.X	fasta,gff,protein
+# Cbat	GCA_XXXXXXXXX.X	fasta,gff,protein
+# Capus	GCA_XXXXXXXXX.X	fasta,gff,protein
+# Sglanis	GCA_XXXXXXXXX.X	fasta,gff,protein
+# Sasotus	GCA_XXXXXXXXX.X	fasta,gff,protein
+# Tfulv	GCF_022655615.1	fasta,gff,protein
+# Tros	GCA_XXXXXXXXX.X	fasta,gff,protein

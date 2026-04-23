@@ -1,0 +1,89 @@
+# ==============================================================================
+# .gitignore — catfish-synteny-toolkit
+# ==============================================================================
+# Keeps genomes, intermediate alignments, and large outputs out of git. Only
+# source code, configs, and small docs are tracked.
+
+# --- Outputs ------------------------------------------------------------------
+results/
+output/
+logs/
+tmp/
+scratch/
+
+# --- Genome / alignment data --------------------------------------------------
+*.fa
+*.fa.gz
+*.fasta
+*.fasta.gz
+*.fna
+*.fna.gz
+*.faa
+*.faa.gz
+*.fai
+*.gzi
+
+# wfmash / minimap2 / paf
+*.paf
+*.paf.gz
+*.sam
+*.bam
+*.bam.bai
+*.cram
+*.cram.crai
+
+# VCF / BCF
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.bcf
+*.bcf.csi
+
+# --- Annotation / repeat tool outputs -----------------------------------------
+*.out
+*.tbl
+*.dat
+*.msk
+*.ori.out
+*.cat.gz
+*.align
+
+# miniprot
+*.gff
+*.gff3
+*.gff.gz
+
+# --- Graph / network ----------------------------------------------------------
+*.gexf
+*.graphml
+
+# --- R / Python scratch -------------------------------------------------------
+.Rhistory
+.Rproj.user/
+.Rdata
+.RData
+*.rds
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# --- Editor / OS --------------------------------------------------------------
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# --- SLURM --------------------------------------------------------------------
+slurm-*.out
+slurm-*.err
+
+# --- Large data tables we don't commit ----------------------------------------
+*.tsv.gz
+*.bed.gz
+# but DO keep the small ones in config/
+!config/*.tsv
+!config/*.nwk
