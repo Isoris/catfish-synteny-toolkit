@@ -2,7 +2,7 @@
 # .gitignore — catfish-synteny-toolkit
 # ==============================================================================
 # Keeps genomes, intermediate alignments, and large outputs out of git. Only
-# source code, configs, and small docs are tracked.
+# source code, species manifests, and small docs are tracked.
 
 # --- Outputs ------------------------------------------------------------------
 results/
@@ -84,6 +84,6 @@ slurm-*.err
 # --- Large data tables we don't commit ----------------------------------------
 *.tsv.gz
 *.bed.gz
-# but DO keep the small ones in config/
-!config/*.tsv
-!config/*.nwk
+# but DO keep the small ones in species/
+!species/*.tsv
+!species/*.nwk

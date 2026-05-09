@@ -11,7 +11,7 @@
 #SBATCH --output=logs/prep_genome_%A_%a.out
 #SBATCH --error=logs/prep_genome_%A_%a.err
 # ============================================================================
-# STEP_00b_prepare_genomes.sh
+# STEP_Ab_prepare_genomes.sh
 #
 # Per-species genome preparation using the EXISTING ScaffoldKit Module 1
 # helpers from the MODULE_CONSERVATION project. Reuses tested code rather
@@ -29,14 +29,14 @@
 #   <species>.report.txt             human-readable summary
 #   <species>.md5                    checksums
 #
-# These files are then consumed by STEP_00_prepare_panSN.sh which takes the
+# These files are then consumed by STEP_A_prepare_panSN.sh which takes the
 # .scaffolds.fa as input and concatenates with PanSN naming.
 #
 # Usage:
 #   Set SCAFFOLDKIT_HELPERS env var to point to your scaffoldkit_module1 dir,
 #   or edit the default below.
 #
-#   sbatch --array=0-$((N_SPECIES-1)) STEP_00b_prepare_genomes.sh [tier]
+#   sbatch --array=0-$((N_SPECIES-1)) STEP_Ab_prepare_genomes.sh [tier]
 #
 # If invoked without SLURM_ARRAY_TASK_ID (i.e. interactively), processes ALL
 # species in the tier sequentially.
@@ -57,7 +57,7 @@ if [[ ! -d "$SCAFFOLDKIT_HELPERS" ]]; then
     echo "Set the env variable: export SCAFFOLDKIT_HELPERS=/path/to/scaffoldkit_module1"
     exit 1
 fi
-echo "[STEP_00b] ScaffoldKit helpers: $SCAFFOLDKIT_HELPERS"
+echo "[STEP_Ab] ScaffoldKit helpers: $SCAFFOLDKIT_HELPERS"
 
 # ---- Tier filter ----
 case "$TIER" in
@@ -68,7 +68,7 @@ case "$TIER" in
     *) echo "ERROR: tier must be core | clarias | all | deep"; exit 1 ;;
 esac
 
-MANIFEST="config/species_manifest.tsv"
+MANIFEST="species/species_manifest.tsv"
 OUTDIR_BASE="results/00_prepared_genomes"
 LOGDIR="logs"
 mkdir -p "$OUTDIR_BASE" "$LOGDIR"
@@ -76,7 +76,7 @@ mkdir -p "$OUTDIR_BASE" "$LOGDIR"
 # ---- Build list of species to process for this tier ----
 mapfile -t SPECIES_LINES < <(tail -n +2 "$MANIFEST" | awk -F'\t' -v pat="$TIERS_REGEX" '$6 ~ pat && $1 != "" && $1 !~ /^#/')
 N="${#SPECIES_LINES[@]}"
-echo "[STEP_00b] Tier '$TIER': $N species to prepare"
+echo "[STEP_Ab] Tier '$TIER': $N species to prepare"
 
 # ---- Determine which indices to run ----
 if [[ -n "${SLURM_ARRAY_TASK_ID:-}" ]]; then
@@ -281,9 +281,9 @@ for idx in "${INDICES[@]}"; do
 done
 
 echo ""
-echo "[STEP_00b] Genome preparation complete for tier=$TIER"
-echo "[STEP_00b] Per-species outputs: ${OUTDIR_BASE}/<species>/"
+echo "[STEP_Ab] Genome preparation complete for tier=$TIER"
+echo "[STEP_Ab] Per-species outputs: ${OUTDIR_BASE}/<species>/"
 echo ""
-echo "Next step: update config/species_manifest.tsv 'fasta_path' column to"
+echo "Next step: update species/species_manifest.tsv 'fasta_path' column to"
 echo "point to the filtered FASTAs (${OUTDIR_BASE}/<species>/<species>.scaffolds.filtered.fa),"
-echo "then run STEP_00_prepare_panSN.sh."
+echo "then run STEP_A_prepare_panSN.sh."

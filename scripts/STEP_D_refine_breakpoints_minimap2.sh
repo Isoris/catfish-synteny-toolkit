@@ -10,13 +10,13 @@
 #SBATCH --output=logs/bp_refine_%j.out
 #SBATCH --error=logs/bp_refine_%j.err
 # ============================================================================
-# STEP_03_refine_breakpoints_minimap2.sh
-#   For each candidate breakpoint window from STEP_02, extract ±500 kb from
+# STEP_D_refine_breakpoints_minimap2.sh
+#   For each candidate breakpoint window from STEP_C, extract ±500 kb from
 #   both query and target genomes and realign with minimap2 asm20 for
 #   base-pair resolution of the breakpoint.
 #
 # Usage:
-#   sbatch STEP_03_refine_breakpoints_minimap2.sh <tier>
+#   sbatch STEP_D_refine_breakpoints_minimap2.sh <tier>
 # ============================================================================
 set -euo pipefail
 
@@ -30,11 +30,11 @@ OUTDIR="results/03_refined_breakpoints"
 mkdir -p "$OUTDIR"
 
 if [[ ! -f "$BED" ]]; then
-    echo "ERROR: $BED not found. Run STEP_02 first."
+    echo "ERROR: $BED not found. Run STEP_C first."
     exit 1
 fi
 
-echo "[STEP_03] Refining $(wc -l < "$BED") breakpoint windows"
+echo "[STEP_D] Refining $(wc -l < "$BED") breakpoint windows"
 
 # For each breakpoint window, extract ±500 kb from query side AND the two
 # candidate target regions, then realign.
@@ -99,4 +99,4 @@ PYEOF
 
 # Merge all refined PAFs
 cat "$OUTDIR"/bp_*_refined.paf > "$OUTDIR/all_refined.paf"
-echo "[STEP_03] Merged PAF: $OUTDIR/all_refined.paf ($(wc -l < "$OUTDIR/all_refined.paf") records)"
+echo "[STEP_D] Merged PAF: $OUTDIR/all_refined.paf ($(wc -l < "$OUTDIR/all_refined.paf") records)"

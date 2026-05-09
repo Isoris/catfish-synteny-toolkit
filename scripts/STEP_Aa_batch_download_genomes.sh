@@ -10,13 +10,13 @@
 #SBATCH --output=logs/ncbi_download_%j.out
 #SBATCH --error=logs/ncbi_download_%j.err
 # ============================================================================
-# STEP_00a_batch_download_genomes.sh
+# STEP_Aa_batch_download_genomes.sh
 #
 # Reads a TSV of accessions and downloads each one using
 # download_ncbi_genome.sh. Tracks which succeeded, which failed, resumes
 # cleanly on re-run.
 #
-# Input format (config/ncbi_accessions.tsv):
+# Input format (species/ncbi_accessions.tsv):
 #   species_id    accession           file_types
 #   Cgar          GCF_024256425.1     fasta,gff,protein
 #   Cmac          GCF_019173215.1     fasta,gff,protein
@@ -33,14 +33,14 @@
 #     _download_log.tsv       # status table
 #
 # Usage:
-#   sbatch STEP_00a_batch_download_genomes.sh [accessions_tsv] [output_dir]
+#   sbatch STEP_Aa_batch_download_genomes.sh [accessions_tsv] [output_dir]
 #
 # Re-run is idempotent: already-downloaded + md5-verified files are skipped.
 # Failed downloads are retried on subsequent runs.
 # ============================================================================
 set -euo pipefail
 
-ACC_TSV="${1:-config/ncbi_accessions.tsv}"
+ACC_TSV="${1:-species/ncbi_accessions.tsv}"
 OUTDIR="${2:-raw_genomes}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

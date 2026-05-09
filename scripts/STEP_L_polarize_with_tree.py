@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-STEP_11_polarize_with_tree.py
+STEP_L_polarize_with_tree.py
 
 Use a species tree (Newick format) to polarize breakpoints detected in Stage B.
 
 Given:
     - Your BUSCO supermatrix species tree (Newick)
-    - Per-breakpoint flank coherence (STEP_09c flank_match_details.tsv)
+    - Per-breakpoint flank coherence (STEP_Jc flank_match_details.tsv)
 
 For each breakpoint:
     1. Look at which species share the flank gene order at each side
@@ -21,8 +21,8 @@ reports that honestly rather than forcing a direction.
 
 Requires: ete3 (pip install ete3)
 Usage:
-    python3 STEP_11_polarize_with_tree.py \\
-        --tree config/species_tree.nwk \\
+    python3 STEP_L_polarize_with_tree.py \\
+        --tree species/species_tree.nwk \\
         --flank-details results/09c_flank_coherence/flank_match_details.tsv \\
         --bp-coherence results/09c_flank_coherence/breakpoint_coherence.tsv \\
         --out results/11_polarized_breakpoints/
@@ -121,18 +121,18 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tree", required=True, type=Path, help="Newick species tree")
     ap.add_argument("--flank-details", required=True, type=Path,
-                    help="STEP_09c flank_match_details.tsv")
+                    help="STEP_Jc flank_match_details.tsv")
     ap.add_argument("--bp-coherence", required=True, type=Path,
-                    help="STEP_09c breakpoint_coherence.tsv (for focal species lookup)")
+                    help="STEP_Jc breakpoint_coherence.tsv (for focal species lookup)")
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
 
-    print(f"[STEP_11] Loading species tree: {args.tree}", file=sys.stderr)
+    print(f"[STEP_L] Loading species tree: {args.tree}", file=sys.stderr)
     tree = load_tree_newick(args.tree)
     leaves = [l.name for l in tree.get_leaves()]
-    print(f"[STEP_11]   {len(leaves)} leaves: {', '.join(leaves)}", file=sys.stderr)
+    print(f"[STEP_L]   {len(leaves)} leaves: {', '.join(leaves)}", file=sys.stderr)
 
     # Load flank match details
     # Columns: bp_id, side, target_species, target_chrom, ...
@@ -158,7 +158,7 @@ def main():
             focal_by_bp[bp] = parts[1] if len(parts) > 1 else ""
 
     # Polarize
-    print(f"[STEP_11] Polarizing {len(focal_by_bp)} breakpoints", file=sys.stderr)
+    print(f"[STEP_L] Polarizing {len(focal_by_bp)} breakpoints", file=sys.stderr)
     results = []
     for bp_id, focal in focal_by_bp.items():
         if not focal:
@@ -181,10 +181,10 @@ def main():
     counts = defaultdict(int)
     for r in results:
         counts[r["polarization"]] += 1
-    print(f"\n[STEP_11] Polarization summary:", file=sys.stderr)
+    print(f"\n[STEP_L] Polarization summary:", file=sys.stderr)
     for k, v in sorted(counts.items()):
         print(f"  {k:20s} {v:4d}", file=sys.stderr)
-    print(f"\n[STEP_11] Output: {out_tsv}", file=sys.stderr)
+    print(f"\n[STEP_L] Output: {out_tsv}", file=sys.stderr)
 
 
 if __name__ == "__main__":

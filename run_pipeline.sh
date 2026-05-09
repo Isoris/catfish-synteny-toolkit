@@ -9,19 +9,19 @@
 # Usage:
 #   bash run_pipeline.sh <tier> [--stage-start N] [--stage-end N] [--force]
 #
-# Stages (each is one numbered script set):
-#   0  = PanSN concat
-#   1  = wfmash all-vs-all
-#   5  = synteny graph
-#   6  = graph figures
-#   7  = breakpoint annotation (TRF/IRF/SDs/TE)
-#   8  = cross-species satellite stats
-#   9  = dual-evidence validation (kmer + per-protein)
-#   9c = flank coherence (protein-family order)
-#   10 = enriched graph for Cytoscape
-#   11 = tree-based polarization
+# Stage IDs (CLI flags accept numbers; each maps to one or more STEP_<letter>_*
+# scripts in scripts/):
+#   0  = PanSN concat (STEP_A) + per-species genome prep (STEP_Aa / STEP_Ab)
+#   1  = wfmash all-vs-all (STEP_B)
+#   5  = synteny graph (STEP_F)
+#   6  = graph figures (STEP_G)
+#   7  = breakpoint annotation (STEP_H) — TRF / IRF / SDs / TE
+#   8  = cross-species satellite stats (STEP_I)
+#   9  = dual-evidence validation (STEP_J / Jb / Jc / Jc1) — kmer + per-protein
+#   10 = enriched graph for Cytoscape (STEP_K)
+#   11 = tree-based polarization (STEP_L)
 #
-# Example — run Stage A only (fast scoping):
+# Example — run stage 0+1 only (fast scoping, scripts STEP_A/Aa/Ab/B):
 #   bash run_pipeline.sh core --stage-end 1
 #
 # Example — run full pipeline for Clarias tier:
@@ -85,9 +85,9 @@ run_stage() {
 if [[ $STAGE_START -le 0 && $STAGE_END -ge 0 ]] && ! stage_done "results/00_prepared_genomes/.done"; then
     echo ""
     echo "=== Stage 0b: per-species ScaffoldKit preparation (SLURM array) ==="
-    N_SP=$(tail -n +2 config/species_manifest.tsv | awk -F'\t' -v pat="^(core|clarias_context|far_outgroup|deep_outgroup)" '$6 ~ pat && $1 != "" && $1 !~ /^#/' | wc -l)
+    N_SP=$(tail -n +2 species/species_manifest.tsv | awk -F'\t' -v pat="^(core|clarias_context|far_outgroup|deep_outgroup)" '$6 ~ pat && $1 != "" && $1 !~ /^#/' | wc -l)
     if (( N_SP > 0 )); then
-        JOBID=$(sbatch --parsable --array=0-$((N_SP-1)) $SCRIPTS/STEP_00b_prepare_genomes.sh $TIER)
+        JOBID=$(sbatch --parsable --array=0-$((N_SP-1)) $SCRIPTS/STEP_Ab_prepare_genomes.sh $TIER)
         echo "    Submitted array $JOBID; waiting..."
         while squeue -j "$JOBID" &>/dev/null; do sleep 60; done
     fi
@@ -97,14 +97,14 @@ fi
 
 # ---- STAGE 0 ----
 run_stage 0 "PanSN concat" \
-    "bash $SCRIPTS/STEP_00_prepare_panSN.sh $TIER" \
+    "bash $SCRIPTS/STEP_A_prepare_panSN.sh $TIER" \
     "results/00_panSN_inputs/catfish_${TIER}.fa.gz.fai"
 
 # ---- STAGE 1 (SLURM — blocks until done) ----
 if [[ $STAGE_START -le 1 && $STAGE_END -ge 1 ]] && ! stage_done "results/01_wfmash/catfish_${TIER}.scaffolds.paf"; then
     echo ""
     echo "=== Stage 1: wfmash all-vs-all (submitting SLURM) ==="
-    JOBID=$(sbatch --parsable $SCRIPTS/STEP_01_wfmash_allvsall.sh $TIER approx)
+    JOBID=$(sbatch --parsable $SCRIPTS/STEP_B_wfmash_allvsall.sh $TIER approx)
     echo "    Submitted job $JOBID; waiting for completion..."
     while squeue -j "$JOBID" &>/dev/null; do sleep 60; done
     [[ -f "results/01_wfmash/catfish_${TIER}.scaffolds.paf" ]] || { echo "STAGE 1 FAILED"; exit 1; }
@@ -112,14 +112,14 @@ fi
 
 # ---- STAGE 5: synteny graph ----
 run_stage 5 "Synteny graph" \
-    "python3 $SCRIPTS/STEP_05_build_synteny_graph.py \
+    "python3 $SCRIPTS/STEP_F_build_synteny_graph.py \
         --paf results/01_wfmash/catfish_${TIER}.scaffolds.paf \
         --out results/05_synteny_graph/" \
     "results/05_synteny_graph/breakpoints.bed"
 
 # ---- STAGE 6: graph figures ----
 run_stage 6 "Graph figures" \
-    "python3 $SCRIPTS/STEP_06_plot_synteny_graph.py --graph-dir results/05_synteny_graph/" \
+    "python3 $SCRIPTS/STEP_G_plot_synteny_graph.py --graph-dir results/05_synteny_graph/" \
     "results/05_synteny_graph/figures/synteny_ribbons.pdf"
 
 echo ""
@@ -143,7 +143,7 @@ if [[ $STAGE_START -le 7 && $STAGE_END -ge 7 ]] && ! stage_done "results/07_bp_a
     echo "=== Stage 7: breakpoint annotation (submitting SLURM) ==="
     TE_ARG=""
     [[ -n "$TE_LIB" ]] && TE_ARG="$TE_LIB"
-    JOBID=$(sbatch --parsable $SCRIPTS/STEP_07_annotate_breakpoints.sh \
+    JOBID=$(sbatch --parsable $SCRIPTS/STEP_H_annotate_breakpoints.sh \
         results/05_synteny_graph/breakpoints.bed \
         results/00_panSN_inputs/catfish_${TIER}.fa.gz \
         "$TE_ARG")
@@ -153,9 +153,9 @@ fi
 
 # ---- STAGE 8: cross-species stats ----
 run_stage 8 "Cross-species satellite stats" \
-    "python3 $SCRIPTS/STEP_08_cross_species_stats.py \
+    "python3 $SCRIPTS/STEP_I_cross_species_stats.py \
         --annotation-dir results/07_bp_annotation/ \
-        --manifest config/species_manifest.tsv \
+        --manifest species/species_manifest.tsv \
         --out results/08_cross_species_stats/" \
     "results/08_cross_species_stats/satellite_catalog.tsv"
 
@@ -163,7 +163,7 @@ run_stage 8 "Cross-species satellite stats" \
 if [[ $STAGE_START -le 9 && $STAGE_END -ge 9 ]] && [[ -n "$PROTEOME" ]] && ! stage_done "results/09_dual_evidence/breakpoint_confidence.tsv"; then
     echo ""
     echo "=== Stage 9: dual-evidence validation (SLURM) ==="
-    JOBID=$(sbatch --parsable $SCRIPTS/STEP_09_dual_evidence_validate.sh \
+    JOBID=$(sbatch --parsable $SCRIPTS/STEP_J_dual_evidence_validate.sh \
         results/05_synteny_graph/breakpoints.bed \
         results/00_panSN_inputs/catfish_${TIER}.fa.gz \
         "$PROTEOME")
@@ -174,25 +174,25 @@ fi
 if [[ $STAGE_START -le 9 && $STAGE_END -ge 9 ]] && [[ -n "$PROTEOME" ]] && ! stage_done "results/09c_wg_miniprot/.done"; then
     echo ""
     echo "=== Stage 9c1: whole-genome miniprot (SLURM array) ==="
-    N_SP=$(tail -n +2 config/species_manifest.tsv | awk '$1 !~ /^#/' | wc -l)
+    N_SP=$(tail -n +2 species/species_manifest.tsv | awk '$1 !~ /^#/' | wc -l)
     JOBID=$(sbatch --parsable --array=0-$((N_SP-1)) \
-        $SCRIPTS/STEP_09c1_miniprot_wholegenome.sh "$PROTEOME" "$TIER")
+        $SCRIPTS/STEP_Jc1_miniprot_wholegenome.sh "$PROTEOME" "$TIER")
     while squeue -j "$JOBID" &>/dev/null; do sleep 60; done
     touch results/09c_wg_miniprot/.done
 fi
 
 run_stage 9 "Flank coherence scoring" \
-    "python3 $SCRIPTS/STEP_09c_flank_coherence.py \
+    "python3 $SCRIPTS/STEP_Jc_flank_coherence.py \
         --bp-bed results/05_synteny_graph/breakpoints.bed \
         --wg-miniprot-dir results/09c_wg_miniprot/ \
-        --manifest config/species_manifest.tsv \
+        --manifest species/species_manifest.tsv \
         --out results/09c_flank_coherence/ \
         --flank-kb 500 --min-families 3 --max-gap-genes 10" \
     "results/09c_flank_coherence/flank_coherence.tsv"
 
 # ---- STAGE 10: enriched graph ----
 run_stage 10 "Enrich graph for Cytoscape" \
-    "python3 $SCRIPTS/STEP_10_enrich_graph_for_cytoscape.py \
+    "python3 $SCRIPTS/STEP_K_enrich_graph_for_cytoscape.py \
         --graph-pickle results/05_synteny_graph/graph.pickle \
         --bp-annotation results/07_bp_annotation/breakpoint_annotation_summary.tsv \
         --flank-coherence results/09c_flank_coherence/flank_coherence.tsv \
@@ -202,8 +202,8 @@ run_stage 10 "Enrich graph for Cytoscape" \
 
 # ---- STAGE 11: tree polarization ----
 run_stage 11 "Tree-based polarization" \
-    "python3 $SCRIPTS/STEP_11_polarize_with_tree.py \
-        --tree config/species_tree.nwk \
+    "python3 $SCRIPTS/STEP_L_polarize_with_tree.py \
+        --tree species/species_tree.nwk \
         --flank-details results/09c_flank_coherence/flank_match_details.tsv \
         --bp-coherence results/09c_flank_coherence/breakpoint_coherence.tsv \
         --out results/11_polarized_breakpoints/" \

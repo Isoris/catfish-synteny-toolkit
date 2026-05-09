@@ -33,17 +33,22 @@ Deliberately NOT used: TideCluster, TRASH, SyRI, MCScanX, WGDI, GRIMM, MGR.
 ## Pipeline structure
 
 ```
-Stage A (wfmash) → PAF → Stage B (graph) → breakpoints.bed
-                                              ↓
-                             ┌────────────────┼─────────────────┐
-                             ↓                ↓                 ↓
-                     Stage C (annotate) Stage D (stats)  Stage E (validate)
-                     TRF, IRF, SDs, TEs  satellite matrix  3 evidence layers
-                             └────────────────┼─────────────────┘
-                                              ↓
-                                       Stage F (integrate)
-                                       enriched GEXF + tree polarization
+STEP_A / Aa / Ab    panSN concat + per-species genome prep
+   ↓
+STEP_B (wfmash) → PAF
+   ↓
+STEP_F (graph) → breakpoints.bed
+   ↓
+   ├──► STEP_H (annotate)     TRF, IRF, SDs, TEs
+   ├──► STEP_I (stats)         satellite matrix
+   └──► STEP_J / Jb / Jc / Jc1 (validate)  3 evidence layers
+                  ↓
+   STEP_K (Cytoscape integrate) + STEP_L (tree polarize)
 ```
+
+(STEP_C / D / E are exploratory side scripts — not in the canonical
+run_pipeline.sh path. See `HANDOFF.md` for which scripts are wired into
+the master runner.)
 
 ## Species manifest tiers
 
@@ -60,8 +65,8 @@ Run tiers sequentially, not mixed in one pass.
 
 - **wfmash `-F 0.00005`**: aggressive frequent-kmer filter for repeat-rich fish
 - **wfmash `-S 100000`**: scaffold mass — keep synteny blocks ≥100 kb
-- **STEP_09c `--flank-kb 500`**: 500 kb flanks (100 kb too small for gene-poor regions)
-- **STEP_09c `--min-families 3`**: hamburger-style clustering threshold
+- **STEP_Jc `--flank-kb 500`**: 500 kb flanks (100 kb too small for gene-poor regions)
+- **STEP_Jc `--min-families 3`**: hamburger-style clustering threshold
 
 ## Outputs that matter
 
@@ -77,21 +82,21 @@ Run tiers sequentially, not mixed in one pass.
 
 ## Decision checkpoints
 
-**After Stage A/B (2 hours):** if no clean breakpoint signal between Cgar and
-Cmac in the ribbon plot, STOP. Refocus on the inversion paper.
+**After STEP_F + STEP_G (~2 hours):** if no clean breakpoint signal between
+Cgar and Cmac in the ribbon plot, STOP. Refocus on the inversion paper.
 
-**After Stage C (full pipeline):** if breakpoints lack IRF palindromes and lack
+**After STEP_H (full pipeline):** if breakpoints lack IRF palindromes and lack
 satellite enrichment, you have a "we found rearrangements" paper, not a
 "we found a mechanism" paper. Decide scope accordingly.
 
 ## Documented limitations
 
 - wfmash scaffold filter misses sub-100 kb rearrangements
-- Gene-poor flanks (desert regions) get TOO_FEW_GENES in STEP_09c — try
+- Gene-poor flanks (desert regions) get TOO_FEW_GENES in STEP_Jc — try
   `--flank-kb 500` or `1000`
 - T. rosablanca at 100 My: protein anchors only, no k-mer synteny
 - TE annotation quality depends entirely on user-provided library
-- STEP_11 polarization assumes the BUSCO species tree is correct (user
+- STEP_L polarization assumes the BUSCO species tree is correct (user
   acknowledged the tree is "ugly but correct")
 
 ## Dependencies

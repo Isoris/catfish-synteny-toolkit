@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-STEP_10_enrich_graph_for_cytoscape.py
+STEP_K_enrich_graph_for_cytoscape.py
 
 Consume all downstream analysis outputs and attach them as node/edge
-attributes on the synteny graph from STEP_05. Produces an enriched GEXF
+attributes on the synteny graph from STEP_F. Produces an enriched GEXF
 file ready for Cytoscape filtering and coloring.
 
 Attributes attached per NODE (segment between breakpoints):
@@ -11,7 +11,7 @@ Attributes attached per NODE (segment between breakpoints):
     support_kmer_median_identity  : median ANI of edges touching this node
     support_protein_coherence     : STRONG / PARTIAL / WEAK / LINEAGE_SPECIFIC
     support_orthology_score       : 0-3 (count of agreeing evidence layers)
-    n_species_connected           : preserved from STEP_05
+    n_species_connected           : preserved from STEP_F
 
   Negative evidence:
     te_fraction                   : fraction of node covered by TEs (if available)
@@ -21,12 +21,12 @@ Attributes attached per NODE (segment between breakpoints):
     is_assembly_suspect           : True if te+satellite > 50% of segment
 
 Attributes per EDGE (homology link):
-  identity, length, strand        : preserved from STEP_05
+  identity, length, strand        : preserved from STEP_F
   evidence_agreement              : count of independent evidence types
                                     that support this edge (0-3)
 
 Usage:
-    python3 STEP_10_enrich_graph_for_cytoscape.py \\
+    python3 STEP_K_enrich_graph_for_cytoscape.py \\
         --graph-pickle results/05_synteny_graph/graph.pickle \\
         --bp-annotation results/07_bp_annotation/breakpoint_annotation_summary.tsv \\
         --flank-coherence results/09c_flank_coherence/flank_coherence.tsv \\
@@ -119,7 +119,7 @@ def enrich_nodes(
                 pass
         te_fraction = (sum(te_pct_vals) / len(te_pct_vals) / 100.0) if te_pct_vals else 0.0
 
-        # Aggregate flank coherence from STEP_09c (by bp_id + side)
+        # Aggregate flank coherence from STEP_Jc (by bp_id + side)
         orthology_classes = []
         for bp_id in bp_ids_at_boundaries:
             for side in ("left", "right"):
@@ -149,7 +149,7 @@ def enrich_nodes(
                     pass
         kmer_median = sum(ident_vals) / len(ident_vals) if ident_vals else 0.0
 
-        # Dual-evidence confidence from STEP_09b
+        # Dual-evidence confidence from STEP_Jb
         dual_conf = "UNKNOWN"
         for bp_id in bp_ids_at_boundaries:
             row = bp_conf.get(bp_id, {})
@@ -253,27 +253,27 @@ def main():
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--graph-pickle", required=True, type=Path)
     ap.add_argument("--bp-annotation", type=Path, default=None,
-                    help="STEP_07 breakpoint_annotation_summary.tsv")
+                    help="STEP_H breakpoint_annotation_summary.tsv")
     ap.add_argument("--flank-coherence", type=Path, default=None,
-                    help="STEP_09c flank_coherence.tsv")
+                    help="STEP_Jc flank_coherence.tsv")
     ap.add_argument("--dual-evidence", type=Path, default=None,
-                    help="STEP_09b breakpoint_confidence.tsv")
+                    help="STEP_Jb breakpoint_confidence.tsv")
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
 
     # Load graph
-    print(f"[STEP_10] Loading graph: {args.graph_pickle}", file=sys.stderr)
+    print(f"[STEP_K] Loading graph: {args.graph_pickle}", file=sys.stderr)
     with open(args.graph_pickle, "rb") as fh:
         data = pickle.load(fh)
     G = data["graph"]
     nodes_meta = data["nodes"]
-    print(f"[STEP_10]   {G.number_of_nodes()} nodes, {G.number_of_edges()} edges",
+    print(f"[STEP_K]   {G.number_of_nodes()} nodes, {G.number_of_edges()} edges",
           file=sys.stderr)
 
     # Load attribute sources
-    print(f"[STEP_10] Loading annotation sources...", file=sys.stderr)
+    print(f"[STEP_K] Loading annotation sources...", file=sys.stderr)
     bp_annot = load_tsv(args.bp_annotation, key_field="bp_id") if args.bp_annotation else {}
     bp_conf = load_tsv(args.dual_evidence, key_field="bp_id") if args.dual_evidence else {}
     print(f"  bp_annot rows:  {len(bp_annot)}", file=sys.stderr)
@@ -289,15 +289,15 @@ def main():
     print(f"  flank_coh rows: {len(flank_coh)}", file=sys.stderr)
 
     # Enrich
-    print(f"[STEP_10] Enriching nodes...", file=sys.stderr)
+    print(f"[STEP_K] Enriching nodes...", file=sys.stderr)
     enrich_nodes(G, nodes_meta, bp_annot, flank_coh, bp_conf)
-    print(f"[STEP_10] Enriching edges...", file=sys.stderr)
+    print(f"[STEP_K] Enriching edges...", file=sys.stderr)
     enrich_edges(G, nodes_meta)
 
     # Write outputs
     enriched_gexf = args.out / "graph_enriched.gexf"
     write_simple_gexf(G, enriched_gexf)
-    print(f"[STEP_10] Enriched GEXF (for Cytoscape): {enriched_gexf}", file=sys.stderr)
+    print(f"[STEP_K] Enriched GEXF (for Cytoscape): {enriched_gexf}", file=sys.stderr)
 
     # Also dump a flat node TSV with all scores for quick grepping
     node_tsv = args.out / "nodes_enriched.tsv"
@@ -312,10 +312,10 @@ def main():
         for node_id, attrs in G.nodes(data=True):
             vals = [str(attrs.get(f, "") if f != "node_id" else node_id) for f in fields]
             fh.write("\t".join(vals) + "\n")
-    print(f"[STEP_10] Enriched node TSV: {node_tsv}", file=sys.stderr)
+    print(f"[STEP_K] Enriched node TSV: {node_tsv}", file=sys.stderr)
 
     # Summary
-    print(f"\n[STEP_10] Score distributions:", file=sys.stderr)
+    print(f"\n[STEP_K] Score distributions:", file=sys.stderr)
     score_counts = defaultdict(int)
     for _, attrs in G.nodes(data=True):
         score_counts[attrs.get("support_orthology_score", 0)] += 1

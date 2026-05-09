@@ -7,8 +7,8 @@
 
 A complete pipeline for detecting structural rearrangements (fusions, fissions,
 inversions) between catfish species, using only established tools
-(wfmash/mashmap3, TRF, IRF, minimap2, miniprot, RepeatMasker). 16 scripts +
-configs + master runner, ~3700 lines total. All syntax-checked. Core graph
+(wfmash/mashmap3, TRF, IRF, minimap2, miniprot, RepeatMasker). 17 scripts +
+species manifests + master runner, ~3700 lines total. All syntax-checked. Core graph
 and flank coherence logic smoke-tested on synthetic data.
 
 Intentionally avoids WGDI/MCScanX (outdated, plant-WGD-oriented) and any
@@ -21,33 +21,33 @@ catfish-synteny-toolkit/
 ├── README.md                                      Full documentation
 ├── HANDOFF.md                                     THIS FILE
 ├── run_pipeline.sh                                Master orchestrator
-├── config/
+├── species/
 │   ├── species_manifest.tsv                       Species list with tier flags
 │   └── species_tree.nwk                           BUSCO supermatrix tree placeholder
 └── scripts/
     ├── STAGE A — all-vs-all homology
-    │   ├── STEP_00b_prepare_genomes.sh            ★ Per-species ScaffoldKit Module 1 prep
-    │   ├── STEP_00_prepare_panSN.sh               Concat genomes with PanSN naming
-    │   └── STEP_01_wfmash_allvsall.sh             wfmash SLURM, tiered ANI
+    │   ├── STEP_Ab_prepare_genomes.sh            ★ Per-species ScaffoldKit Module 1 prep
+    │   ├── STEP_A_prepare_panSN.sh               Concat genomes with PanSN naming
+    │   └── STEP_B_wfmash_allvsall.sh             wfmash SLURM, tiered ANI
     ├── STAGE A extras (legacy, keep for reference)
-    │   ├── STEP_02_call_breakpoints.py            Simple pairwise breakpoint caller
-    │   ├── STEP_03_refine_breakpoints_minimap2.sh minimap2 local refinement
-    │   └── STEP_04_visualize_synteny.R            R dotplots + ribbons
+    │   ├── STEP_C_call_breakpoints.py            Simple pairwise breakpoint caller
+    │   ├── STEP_D_refine_breakpoints_minimap2.sh minimap2 local refinement
+    │   └── STEP_E_visualize_synteny.R            R dotplots + ribbons
     ├── STAGE B — graph construction
-    │   ├── STEP_05_build_synteny_graph.py         Graph from PAF; nodes=segments, edges=homology
-    │   └── STEP_06_plot_synteny_graph.py          Ribbons, heatmap, bp density
+    │   ├── STEP_F_build_synteny_graph.py         Graph from PAF; nodes=segments, edges=homology
+    │   └── STEP_G_plot_synteny_graph.py          Ribbons, heatmap, bp density
     ├── STAGE C — annotation at breakpoints
-    │   └── STEP_07_annotate_breakpoints.sh        TRF + IRF + minimap2-self + RepeatMasker
+    │   └── STEP_H_annotate_breakpoints.sh        TRF + IRF + minimap2-self + RepeatMasker
     ├── STAGE D — cross-species stats
-    │   └── STEP_08_cross_species_stats.py         Satellite hit matrix (Kuang Fig 2D-F)
+    │   └── STEP_I_cross_species_stats.py         Satellite hit matrix (Kuang Fig 2D-F)
     ├── STAGE E — multi-evidence validation
-    │   ├── STEP_09_dual_evidence_validate.sh      Mashmap multi-pi + miniprot on windows
-    │   ├── STEP_09b_score_dual_evidence.py        Per-tile dual-evidence scoring
-    │   ├── STEP_09c1_miniprot_wholegenome.sh      Lenient whole-genome miniprot (COLLECT)
-    │   └── STEP_09c_flank_coherence.py            Hamburger-adapted gene-order test (REFINE)
+    │   ├── STEP_J_dual_evidence_validate.sh      Mashmap multi-pi + miniprot on windows
+    │   ├── STEP_Jb_score_dual_evidence.py        Per-tile dual-evidence scoring
+    │   ├── STEP_Jc1_miniprot_wholegenome.sh      Lenient whole-genome miniprot (COLLECT)
+    │   └── STEP_Jc_flank_coherence.py            Hamburger-adapted gene-order test (REFINE)
     ├── STAGE F — integration
-    │   ├── STEP_10_enrich_graph_for_cytoscape.py  Multi-evidence scores -> GEXF
-    │   └── STEP_11_polarize_with_tree.py          Species-tree-based polarization (needs ete3)
+    │   ├── STEP_K_enrich_graph_for_cytoscape.py  Multi-evidence scores -> GEXF
+    │   └── STEP_L_polarize_with_tree.py          Species-tree-based polarization (needs ete3)
 ```
 
 ## 3. Design decisions — reference list for next chat
@@ -61,23 +61,23 @@ catfish-synteny-toolkit/
   rosablanca outgroup) as separate passes.
 - **Collect-then-refine principle (user's idea)**: cast wide net with lenient
   parameters, then filter strictly on coherence. Applied throughout:
-  STEP_09c1 uses miniprot --outs=0.5 (collect), STEP_09c requires gene-order
+  STEP_Jc1 uses miniprot --outs=0.5 (collect), STEP_Jc requires gene-order
   preservation (refine).
-- **Hamburger adaptation**: STEP_09c adapts djw533/hamburger's HMM-cluster
+- **Hamburger adaptation**: STEP_Jc adapts djw533/hamburger's HMM-cluster
   logic to require that miniprot hits in a flank appear in the SAME ORDER
   on some other species' chromosome. Order preservation is what random false
   positives can't produce — this is the discriminative power.
-- **Graph-based breakpoint detection (STEP_05)**: nodes = segments between
+- **Graph-based breakpoint detection (STEP_F)**: nodes = segments between
   breakpoints; edges = homology blocks from wfmash. A fusion appears as a
   node whose edges go to two different species-chromosomes; topology
   encodes phylogenetic signal without requiring a pre-specified tree.
-- **Genome prep via ScaffoldKit Module 1 (STEP_00b)**: reuses tested helpers
+- **Genome prep via ScaffoldKit Module 1 (STEP_Ab)**: reuses tested helpers
   from `MODULE_CONSERVATION/helpers/scaffoldkit_module1/` — Picard normalize,
   seqkit sizes, detgaps, RagTag splitasm AGP, Quartet telomeres, seqkit <5Mb
-  filter. STEP_00 auto-detects the prepared filtered.fa if present. Set
+  filter. STEP_A auto-detects the prepared filtered.fa if present. Set
   `SCAFFOLDKIT_HELPERS` env var if the helpers are at a non-default path.
 - **T. rosablanca (100 My cave catfish)**: only catfish outgroup available.
-  Too diverged for k-mer synteny — use protein anchors only (STEP_09c).
+  Too diverged for k-mer synteny — use protein anchors only (STEP_Jc).
   Enables fragment-level polarization. Added as `deep_outgroup` tier.
 
 ## 4. Critical context for next chat
@@ -93,7 +93,7 @@ genetics at Kasetsart University Bangkok, working on catfish. LANTA HPC account
 3. THIS project (catfish breakpoints / ancestral karyotype) — lower priority
 
 **User's risk of procrastination:** This project was designed over 10+ messages.
-User has NOT yet run a single wfmash. Next chat should push: "Run STEP_01 core
+User has NOT yet run a single wfmash. Next chat should push: "Run STEP_B core
 tier tonight; come back with dotplots; decide from data whether to continue."
 Don't let the project expand further without empirical justification.
 
@@ -110,12 +110,12 @@ Don't let the project expand further without empirical justification.
 - **T. rosablanca at chromosome level?** User said all species chromosome-level
   after filtering. Verify the T. rosablanca assembly quality before putting
   weight on ancestral karyotype claims.
-- **STEP_09c flank_kb**: default 100 kb may give too few genes in gene-poor
+- **STEP_Jc flank_kb**: default 100 kb may give too few genes in gene-poor
   regions. Pipeline defaults 500 kb. User flagged this — use 500 kb, not 100.
-- **STEP_11 requires `ete3`**: `pip install ete3 --break-system-packages`. Not
+- **STEP_L requires `ete3`**: `pip install ete3 --break-system-packages`. Not
   in default `assembly` env.
 - **IRF not on bioconda**: user must manually install from
-  https://tandem.bu.edu/irf/irf.download.html. STEP_07 degrades gracefully
+  https://tandem.bu.edu/irf/irf.download.html. STEP_H degrades gracefully
   if IRF missing (skips dyad symmetry) but dyad is Kuang Fig 2C equivalent
   so worth installing.
 - **ANI parameters**: user initially suggested -p 5-20 range; that's WRONG
@@ -149,7 +149,7 @@ pip install --break-system-packages networkx matplotlib numpy ete3
 
 ### Step 2: edit the manifest
 
-Open `config/species_manifest.tsv` and fix the fasta_path column with real
+Open `species/species_manifest.tsv` and fix the fasta_path column with real
 paths. Remove species rows you don't have.
 
 ### Step 2.5: download missing NCBI genomes (OPTIONAL)
@@ -162,22 +162,22 @@ md5 verification. One genome at a time, no zip archives, idempotent.
 
 ```bash
 # Edit the accession manifest with GCA/GCF accessions
-vim config/ncbi_accessions.tsv
+vim species/ncbi_accessions.tsv
 
 # Submit (long time job, resumes cleanly if interrupted)
-sbatch scripts/STEP_00a_batch_download_genomes.sh \
-    config/ncbi_accessions.tsv raw_genomes/
+sbatch scripts/STEP_Aa_batch_download_genomes.sh \
+    species/ncbi_accessions.tsv raw_genomes/
 
 # Re-run the same command to retry failures. Completed downloads skipped by md5.
 ```
 
 Outputs land in `raw_genomes/<species_id>/`. Point the fasta_path in
-`config/species_manifest.tsv` to those `.fna.gz` files (STEP_00b will
+`species/species_manifest.tsv` to those `.fna.gz` files (STEP_Ab will
 normalize them).
 
 ### Step 3: replace the placeholder species tree
 
-Put the real BUSCO supermatrix tree in `config/species_tree.nwk`. It MUST
+Put the real BUSCO supermatrix tree in `species/species_tree.nwk`. It MUST
 use the same species_id strings as the manifest (e.g. "Cgar", not
 "Clarias_gariepinus").
 
@@ -190,8 +190,8 @@ export SCAFFOLDKIT_HELPERS=/path/to/MODULE_CONSERVATION/helpers/scaffoldkit_modu
 bash run_pipeline.sh core --stage-end 6
 ```
 
-This runs STEP_00b (per-species genome prep, SLURM array) + STEP_00 (PanSN concat)
-+ STEP_01 (wfmash) + STEP_05 (graph) + STEP_06 (figures). Wall time: ~2-4 hours
+This runs STEP_Ab (per-species genome prep, SLURM array) + STEP_A (PanSN concat)
++ STEP_B (wfmash) + STEP_F (graph) + STEP_G (figures). Wall time: ~2-4 hours
 for the core tier. Produces dotplots and the initial graph ribbon figure.
 **Stop here and look at the figures.** If the signal is weak between Cgar and
 Cmac, consider dropping the project.

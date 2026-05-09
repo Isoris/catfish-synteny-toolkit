@@ -44,16 +44,16 @@ publishing. BibTeX entries at the bottom.
 | ete3 | ≥ 3.1.3 | Species tree parsing for polarization | @huerta2016ete3 |
 | Cytoscape | ≥ 3.10 | Interactive graph visualization (user-side) | @shannon2003cytoscape |
 | Gephi | ≥ 0.10 (alternative to Cytoscape) | GEXF visualization | @bastian2009gephi |
-| R | ≥ 4.3 | Optional R dotplots (STEP_04) | N/A |
+| R | ≥ 4.3 | Optional R dotplots (STEP_E) | N/A |
 | ggplot2, dplyr, tidyr | CRAN | R visualization | @wickham2016ggplot2 |
 
 ## Language runtimes
 
 | Runtime | Version pin | Used in |
 |---------|-------------|---------|
-| Python | ≥ 3.10 | STEP_02, 05, 06, 08, 09b, 09c, 10, 11 |
+| Python | ≥ 3.10 | STEP_C, F, G, I, Jb, Jc, K, L |
 | Bash | ≥ 4.4 | All `.sh` scripts |
-| R | ≥ 4.3 | STEP_04 (optional) |
+| R | ≥ 4.3 | STEP_E (optional) |
 
 ## Data sources
 
@@ -325,5 +325,5 @@ Tools that appeared in discussions but were **deliberately excluded**:
   validation; TRF + IRF chosen instead for ~25 years of community use.
 - **SyRI** — structural variant identifier; overlaps wfmash+custom-parsing
   without clear advantage for this project.
-- **Hamburger** (djw533) — inspired the flank coherence algorithm in STEP_09c
+- **Hamburger** (djw533) — inspired the flank coherence algorithm in STEP_Jc
   but the bacterial-specific code was not reused directly.

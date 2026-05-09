@@ -10,11 +10,11 @@
 #SBATCH --output=logs/bp_annotate_%j.out
 #SBATCH --error=logs/bp_annotate_%j.err
 # ============================================================================
-# STEP_07_annotate_breakpoints.sh
+# STEP_H_annotate_breakpoints.sh
 #
 # STAGE C — Local annotation at each breakpoint window.
 #
-# For each breakpoint interval from STEP_05 (breakpoints.bed), extract the
+# For each breakpoint interval from STEP_F (breakpoints.bed), extract the
 # sequence window and run a panel of established annotation tools:
 #
 #   TRF  (Benson 1999)            : tandem repeats + microsatellites
@@ -34,12 +34,12 @@
 # Plus a summary table across all breakpoints.
 #
 # Usage:
-#   sbatch STEP_07_annotate_breakpoints.sh <bp_bed> <concat_fa> [TE_lib]
+#   sbatch STEP_H_annotate_breakpoints.sh <bp_bed> <concat_fa> [TE_lib]
 # ============================================================================
 set -euo pipefail
 
-BP_BED="${1:?Usage: STEP_07_annotate_breakpoints.sh <bp_bed> <concat_fa> [TE_lib]}"
-CONCAT_FA="${2:?Usage: STEP_07_annotate_breakpoints.sh <bp_bed> <concat_fa> [TE_lib]}"
+BP_BED="${1:?Usage: STEP_H_annotate_breakpoints.sh <bp_bed> <concat_fa> [TE_lib]}"
+CONCAT_FA="${2:?Usage: STEP_H_annotate_breakpoints.sh <bp_bed> <concat_fa> [TE_lib]}"
 TE_LIB="${3:-}"
 
 module load Miniconda3 || true
@@ -161,4 +161,4 @@ while IFS=$'\t' read -r region start end bp_id; do
 done < "$BP_BED"
 
 echo ""
-echo "[STEP_07] Done. Annotation summary: $SUMMARY"
+echo "[STEP_H] Done. Annotation summary: $SUMMARY"

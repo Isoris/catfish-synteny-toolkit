@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-STEP_08_cross_species_stats.py
+STEP_I_cross_species_stats.py
 
 STAGE D — Cross-species statistics at each breakpoint.
 
@@ -24,9 +24,9 @@ Output:
     - Fig2_equivalent.pdf        : the Kuang Figure 2 D-F equivalent
 
 Usage:
-    python3 STEP_08_cross_species_stats.py \
+    python3 STEP_I_cross_species_stats.py \
         --annotation-dir results/07_bp_annotation/ \
-        --manifest config/species_manifest.tsv \
+        --manifest species/species_manifest.tsv \
         --out results/08_cross_species_stats/
 """
 from __future__ import annotations
@@ -194,7 +194,7 @@ def enrichment_test(hits: dict[str, dict[str, int]], focal_species: str, focal_c
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--annotation-dir", required=True, type=Path,
-                    help="Output dir from STEP_07 (contains per-bp subdirs with trf.dat)")
+                    help="Output dir from STEP_H (contains per-bp subdirs with trf.dat)")
     ap.add_argument("--manifest", required=True, type=Path,
                     help="Species manifest TSV")
     ap.add_argument("--out", required=True, type=Path)
@@ -209,12 +209,12 @@ def main():
 
     # Parse manifest
     species_list = parse_manifest(args.manifest)
-    print(f"[STEP_08] {len(species_list)} species in manifest", file=sys.stderr)
+    print(f"[STEP_I] {len(species_list)} species in manifest", file=sys.stderr)
 
     # Collect satellites from all breakpoint TRF outputs
     satellite_catalog = []
     bp_dirs = sorted([d for d in args.annotation_dir.iterdir() if d.is_dir()])
-    print(f"[STEP_08] Scanning {len(bp_dirs)} breakpoint dirs for satellites...", file=sys.stderr)
+    print(f"[STEP_I] Scanning {len(bp_dirs)} breakpoint dirs for satellites...", file=sys.stderr)
 
     for bp_dir in bp_dirs:
         bp_id = bp_dir.name
@@ -231,7 +231,7 @@ def main():
                 "consensus_len": len(r["consensus"]),
             })
 
-    print(f"[STEP_08] Found {len(satellite_catalog)} satellite consensus sequences", file=sys.stderr)
+    print(f"[STEP_I] Found {len(satellite_catalog)} satellite consensus sequences", file=sys.stderr)
 
     # Write catalog
     cat_tsv = args.out / "satellite_catalog.tsv"
@@ -243,7 +243,7 @@ def main():
 
     # Query each satellite against each genome
     # Build hit matrix: satellites (rows) × species_chrom (cols)
-    print(f"[STEP_08] Querying satellites against genomes (this takes a while)...", file=sys.stderr)
+    print(f"[STEP_I] Querying satellites against genomes (this takes a while)...", file=sys.stderr)
     all_hits: dict[str, dict[str, dict[str, int]]] = {}  # sat_id -> species -> chrom -> count
     for i, s in enumerate(satellite_catalog):
         print(f"  [{i+1}/{len(satellite_catalog)}] {s['sat_id']} "
@@ -286,7 +286,7 @@ def main():
                 fh.write(f"\t{total}\t{max_chrom}\t{max_n}")
             fh.write("\n")
 
-    print(f"\n[STEP_08] Outputs:", file=sys.stderr)
+    print(f"\n[STEP_I] Outputs:", file=sys.stderr)
     print(f"  Catalog:  {cat_tsv}", file=sys.stderr)
     print(f"  Hits:     {matrix_tsv}", file=sys.stderr)
     print(f"  Summary:  {summary_tsv}", file=sys.stderr)
@@ -297,7 +297,7 @@ def main():
     pdf_out = args.out / "Fig2_equivalent.pdf"
     n_sat = len(satellite_catalog)
     if n_sat == 0:
-        print("[STEP_08] No satellites to plot", file=sys.stderr)
+        print("[STEP_I] No satellites to plot", file=sys.stderr)
         return
 
     ncols = 4

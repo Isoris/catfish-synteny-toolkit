@@ -10,7 +10,7 @@
 #SBATCH --output=logs/bp_validate_%j.out
 #SBATCH --error=logs/bp_validate_%j.err
 # ============================================================================
-# STEP_09_dual_evidence_validate.sh
+# STEP_J_dual_evidence_validate.sh
 #
 # Reciprocal validation of breakpoint regions using two independent evidence
 # types:
@@ -33,7 +33,7 @@
 # regions of extreme divergence worth investigating separately.
 #
 # Usage:
-#   sbatch STEP_09_dual_evidence_validate.sh \
+#   sbatch STEP_J_dual_evidence_validate.sh \
 #       <bp_bed> <concat_fa> <reference_proteome.faa>
 #
 # The reference proteome should be a trusted gene set — e.g., your existing
@@ -42,9 +42,9 @@
 # ============================================================================
 set -euo pipefail
 
-BP_BED="${1:?Usage: STEP_09 <bp_bed> <concat_fa> <proteome.faa>}"
-CONCAT_FA="${2:?Usage: STEP_09 <bp_bed> <concat_fa> <proteome.faa>}"
-PROTEOME="${3:?Usage: STEP_09 <bp_bed> <concat_fa> <proteome.faa>}"
+BP_BED="${1:?Usage: STEP_J <bp_bed> <concat_fa> <proteome.faa>}"
+CONCAT_FA="${2:?Usage: STEP_J <bp_bed> <concat_fa> <proteome.faa>}"
+PROTEOME="${3:?Usage: STEP_J <bp_bed> <concat_fa> <proteome.faa>}"
 
 module load Miniconda3 || true
 source activate assembly
@@ -63,7 +63,7 @@ PI_LEVELS=(70 80 85 90 95)
 # ============================================================================
 # Phase 1: extract all breakpoint windows into one concatenated fasta
 # ============================================================================
-echo "[STEP_09] Phase 1: extract breakpoint windows"
+echo "[STEP_J] Phase 1: extract breakpoint windows"
 WINDOWS_FA="$OUTDIR/all_windows.fa"
 > "$WINDOWS_FA"
 while IFS=$'\t' read -r region start end bp_id; do
@@ -78,7 +78,7 @@ echo "  $(grep -c '^>' "$WINDOWS_FA") windows extracted"
 # Phase 2: mashmap multi-pi sweep (windows vs windows, all-vs-all)
 # ============================================================================
 echo ""
-echo "[STEP_09] Phase 2: mashmap multi-pi sweep"
+echo "[STEP_J] Phase 2: mashmap multi-pi sweep"
 MASH_DIR="$OUTDIR/mashmap_sweep"
 mkdir -p "$MASH_DIR"
 
@@ -100,7 +100,7 @@ done
 # Phase 3: miniprot protein alignment
 # ============================================================================
 echo ""
-echo "[STEP_09] Phase 3: miniprot protein-to-genome alignment"
+echo "[STEP_J] Phase 3: miniprot protein-to-genome alignment"
 MP_DIR="$OUTDIR/miniprot"
 mkdir -p "$MP_DIR"
 
@@ -120,8 +120,8 @@ echo "  $(awk '$3 == "mRNA"' "$MP_DIR/proteome_vs_windows.gff" | wc -l) mRNAs"
 # Phase 4: tile each window into 5 kb bins and compute dual-evidence score
 # ============================================================================
 echo ""
-echo "[STEP_09] Phase 4: dual-evidence scoring"
-python3 "$(dirname "$0")/STEP_09b_score_dual_evidence.py" \
+echo "[STEP_J] Phase 4: dual-evidence scoring"
+python3 "$(dirname "$0")/STEP_Jb_score_dual_evidence.py" \
     --bp-bed "$BP_BED" \
     --mash-dir "$MASH_DIR" \
     --miniprot-gff "$MP_DIR/proteome_vs_windows.gff" \
@@ -130,7 +130,7 @@ python3 "$(dirname "$0")/STEP_09b_score_dual_evidence.py" \
     --tile-bp 5000
 
 echo ""
-echo "[STEP_09] Done. Outputs:"
+echo "[STEP_J] Done. Outputs:"
 echo "  $OUTDIR/tile_evidence.tsv              — per-tile evidence scores"
 echo "  $OUTDIR/breakpoint_confidence.tsv      — per-breakpoint confidence calls"
 echo "  $OUTDIR/evidence_tracks.pdf            — per-breakpoint evidence plot"

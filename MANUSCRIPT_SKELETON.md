@@ -14,7 +14,7 @@ with the actual numbers/values after running the pipeline.
 ### Genome assemblies and data sources
 
 We analyzed chromosome-level assemblies of `<FILL IN: N>` catfish species:
-`<FILL IN: list species with genus + assembly accession from config/ncbi_accessions.tsv>`.
+`<FILL IN: list species with genus + assembly accession from species/ncbi_accessions.tsv>`.
 Assemblies were obtained from NCBI GenBank/RefSeq (accessed
 `<FILL IN: date>`) using HTTPS downloads with md5 verification
 (`download_ncbi_genome.sh` in the catfish-synteny-toolkit). The NCBI
@@ -28,7 +28,7 @@ for each species).
 ### Genome preparation
 
 Each assembly was processed through the ScaffoldKit Module 1 pipeline
-(STEP_00b_prepare_genomes.sh): FASTA normalization with Picard
+(STEP_Ab_prepare_genomes.sh): FASTA normalization with Picard
 NormalizeFasta (line length 80 bp, headers truncated at whitespace);
 scaffold size tabulation with seqkit fx2tab; gap detection with detgaps;
 AGP generation and contig splitting with RagTag splitasm; telomere
@@ -63,7 +63,7 @@ input to downstream breakpoint calling.
 ### Synteny graph construction (Stage B)
 
 From the scaffold PAF, we constructed an undirected multi-graph
-(STEP_05_build_synteny_graph.py) where nodes are genomic segments
+(STEP_F_build_synteny_graph.py) where nodes are genomic segments
 bounded by inferred breakpoints and edges are wfmash homology blocks
 weighted by block length and sequence identity. Breakpoints were
 identified as positions where adjacent blocks on the same query
@@ -80,7 +80,7 @@ results/05_synteny_graph/node_summary.tsv>` nodes and
 ### Breakpoint annotation (Stage C)
 
 Each breakpoint window (±`<FILL IN: 100>` kb) was annotated using a
-panel of established tools (STEP_07_annotate_breakpoints.sh):
+panel of established tools (STEP_H_annotate_breakpoints.sh):
 
 - **Tandem repeats and satellites**: TRF version
   `<FILL IN: cat versions/trf.txt>` with recommended parameters
@@ -102,7 +102,7 @@ Satellite consensus sequences identified by TRF at breakpoints were
 queried against each species' full genome using minimap2 (map-ont
 preset). Hits were tabulated per chromosome per species to generate an
 enrichment matrix analogous to the analysis in Kuang et al. 2026
-(STEP_08_cross_species_stats.py). A satellite was considered enriched
+(STEP_I_cross_species_stats.py). A satellite was considered enriched
 at a breakpoint chromosome if its hit count there exceeded the
 genome-wide per-chromosome mean (chi-square test).
 
@@ -110,18 +110,18 @@ genome-wide per-chromosome mean (chi-square test).
 
 Three independent evidence types were integrated per breakpoint:
 
-1. **k-mer homology robustness** (STEP_09_dual_evidence_validate.sh):
+1. **k-mer homology robustness** (STEP_J_dual_evidence_validate.sh):
    mashmap was run in a multi-pi sweep (pi = 70, 80, 85, 90, 95) on
    breakpoint windows; each 5 kb tile was scored by the highest pi
    threshold at which it retained homology to another window.
 
-2. **Per-protein support** (STEP_09b_score_dual_evidence.py): miniprot
+2. **Per-protein support** (STEP_Jb_score_dual_evidence.py): miniprot
    version `<FILL IN: cat versions/miniprot.txt>` with `<FILL IN:
    reference proteome: e.g. C. gariepinus predicted proteins or
    zebrafish RefSeq>` aligned to breakpoint windows; each tile scored
    by the presence of ≥1 miniprot mRNA feature.
 
-3. **Protein-family order preservation** (STEP_09c_flank_coherence.py):
+3. **Protein-family order preservation** (STEP_Jc_flank_coherence.py):
    miniprot was run genome-wide on each species with lenient
    parameters (`--outs=0.5`). For each breakpoint flank (±500 kb), the
    ordered list of matched protein families was extracted. A flank
@@ -139,9 +139,9 @@ or UNINFORMATIVE otherwise.
 
 A BUSCO single-copy supermatrix phylogeny
 (`<FILL IN: method — e.g. IQ-TREE with LG+G, N single-copy orthologs>`)
-was used as the reference species tree (config/species_tree.nwk). For
+was used as the reference species tree (species/species_tree.nwk). For
 each breakpoint, the set of species sharing each flank's gene order was
-mapped onto the tree (STEP_11_polarize_with_tree.py). A breakpoint was
+mapped onto the tree (STEP_L_polarize_with_tree.py). A breakpoint was
 polarized by parsimony: if one flank's sharer set was a strict subset
 of the other's, the rearrangement was inferred to have occurred on the
 branch leading to the species carrying the derived state. Ambiguous

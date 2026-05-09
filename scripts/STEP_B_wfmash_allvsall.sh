@@ -10,14 +10,14 @@
 #SBATCH --output=logs/wfmash_%j.out
 #SBATCH --error=logs/wfmash_%j.err
 # ============================================================================
-# STEP_01_wfmash_allvsall.sh
+# STEP_B_wfmash_allvsall.sh
 #   Run wfmash all-vs-all on PanSN-concatenated catfish genomes.
 #   Produces:
 #     - <tier>.paf         : base-accurate alignments (if not -m mode)
 #     - <tier>.scaffolds.paf : filtered synteny scaffolds (the key output for breakpoints)
 #
 # Usage:
-#   sbatch STEP_01_wfmash_allvsall.sh <tier> [mode]
+#   sbatch STEP_B_wfmash_allvsall.sh <tier> [mode]
 #     tier: core | clarias | all
 #     mode: approx (default, fast) | full (with WFA base alignment)
 # ============================================================================
@@ -34,7 +34,7 @@ INPUT_FA="results/00_panSN_inputs/catfish_${TIER}.fa.gz"
 OUT_PREFIX="results/01_wfmash/catfish_${TIER}"
 
 if [[ ! -f "$INPUT_FA" ]]; then
-    echo "ERROR: $INPUT_FA not found. Run STEP_00_prepare_panSN.sh first."
+    echo "ERROR: $INPUT_FA not found. Run STEP_A_prepare_panSN.sh first."
     exit 1
 fi
 
@@ -102,8 +102,8 @@ time wfmash \
     > "$OUT_PAF"
 
 echo ""
-echo "[STEP_01] Done."
+echo "[STEP_B] Done."
 echo "  Alignments:          $OUT_PAF ($(wc -l < "$OUT_PAF") records)"
 echo "  Synteny scaffolds:   ${OUT_PREFIX}.scaffolds.paf ($(wc -l < "${OUT_PREFIX}.scaffolds.paf") records)"
 echo ""
-echo "Next: python3 scripts/STEP_02_call_breakpoints.py --paf ${OUT_PREFIX}.scaffolds.paf"
+echo "Next: python3 scripts/STEP_C_call_breakpoints.py --paf ${OUT_PREFIX}.scaffolds.paf"

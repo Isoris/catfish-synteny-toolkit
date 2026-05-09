@@ -11,9 +11,9 @@
 #SBATCH --output=logs/miniprot_wg_%A_%a.out
 #SBATCH --error=logs/miniprot_wg_%A_%a.err
 # ============================================================================
-# STEP_09c1_miniprot_wholegenome.sh
+# STEP_Jc1_miniprot_wholegenome.sh
 #
-# COLLECT phase for STEP_09c flank coherence analysis.
+# COLLECT phase for STEP_Jc flank coherence analysis.
 #
 # Runs miniprot with LENIENT parameters against each species' full genome.
 # Output: one GFF per species with all protein family hits.
@@ -26,12 +26,12 @@
 # SLURM array: one task per species in the manifest.
 #
 # Usage:
-#   sbatch --array=0-$((N-1)) STEP_09c1_miniprot_wholegenome.sh <proteome.faa> <tier>
+#   sbatch --array=0-$((N-1)) STEP_Jc1_miniprot_wholegenome.sh <proteome.faa> <tier>
 # ============================================================================
 set -euo pipefail
 
-PROTEOME="${1:?Usage: STEP_09c1 <proteome.faa> <tier>}"
-TIER="${2:?Usage: STEP_09c1 <proteome.faa> <tier>}"
+PROTEOME="${1:?Usage: STEP_Jc1 <proteome.faa> <tier>}"
+TIER="${2:?Usage: STEP_Jc1 <proteome.faa> <tier>}"
 
 module load Miniconda3 || true
 source activate assembly
@@ -41,7 +41,7 @@ OUTDIR="results/09c_wg_miniprot"
 mkdir -p "$OUTDIR"
 THREADS="${SLURM_CPUS_PER_TASK:-64}"
 
-MANIFEST="config/species_manifest.tsv"
+MANIFEST="species/species_manifest.tsv"
 
 # Select species for this array task, filtered by tier
 case "$TIER" in
@@ -63,9 +63,9 @@ fi
 
 IFS=$'\t' read -r sp_id genus species prefix fasta tier notes <<< "${SPECIES_LINES[$TASK_ID]}"
 
-echo "[STEP_09c1] Task $TASK_ID: $sp_id ($genus $species, tier=$tier)"
-echo "[STEP_09c1] Fasta:  $fasta"
-echo "[STEP_09c1] Lenient collection (--outs=0.5), threads=$THREADS"
+echo "[STEP_Jc1] Task $TASK_ID: $sp_id ($genus $species, tier=$tier)"
+echo "[STEP_Jc1] Fasta:  $fasta"
+echo "[STEP_Jc1] Lenient collection (--outs=0.5), threads=$THREADS"
 
 if [[ ! -f "$fasta" ]]; then
     echo "ERROR: $fasta not found"
@@ -88,4 +88,4 @@ time miniprot \
     > "$OUT_GFF" 2> "$OUT_LOG"
 
 n_mrna=$(awk '$3 == "mRNA"' "$OUT_GFF" | wc -l)
-echo "[STEP_09c1] Done: $n_mrna mRNAs in $OUT_GFF"
+echo "[STEP_Jc1] Done: $n_mrna mRNAs in $OUT_GFF"

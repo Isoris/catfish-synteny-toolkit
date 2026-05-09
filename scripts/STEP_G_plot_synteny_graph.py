@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-STEP_06_plot_synteny_graph.py
+STEP_G_plot_synteny_graph.py
 
 STAGE B continued — visualize the synteny graph.
 
@@ -11,7 +11,7 @@ Produces three views:
     3. Species-pair adjacency matrix heatmap (shared-segment counts)
 
 Usage:
-    python3 STEP_06_plot_synteny_graph.py --graph-dir results/05_synteny_graph/
+    python3 STEP_G_plot_synteny_graph.py --graph-dir results/05_synteny_graph/
 """
 from __future__ import annotations
 
@@ -194,19 +194,19 @@ def main():
     out_dir = args.out_dir or (args.graph_dir / "figures")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"[STEP_06] Loading graph from {args.graph_dir}")
+    print(f"[STEP_G] Loading graph from {args.graph_dir}")
     data = load_graph(args.graph_dir)
 
-    print(f"[STEP_06] Plotting linear ribbons...")
+    print(f"[STEP_G] Plotting linear ribbons...")
     plot_linear_ribbons(data, out_dir / "synteny_ribbons.pdf")
 
-    print(f"[STEP_06] Plotting pair heatmap...")
+    print(f"[STEP_G] Plotting pair heatmap...")
     plot_pair_heatmap(data, out_dir / "pair_heatmap.pdf")
 
-    print(f"[STEP_06] Plotting breakpoint density...")
+    print(f"[STEP_G] Plotting breakpoint density...")
     plot_breakpoint_density(data, out_dir / "breakpoint_density.pdf")
 
-    print(f"[STEP_06] Done. Figures in: {out_dir}")
+    print(f"[STEP_G] Done. Figures in: {out_dir}")
 
 
 if __name__ == "__main__":

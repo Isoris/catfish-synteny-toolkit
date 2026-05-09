@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-STEP_09b_score_dual_evidence.py
+STEP_Jb_score_dual_evidence.py
 
 Consume mashmap multi-pi sweep outputs and miniprot GFF, compute per-tile
 dual-evidence scores for each breakpoint window.
@@ -330,7 +330,7 @@ def main():
 
     args.out.mkdir(parents=True, exist_ok=True)
 
-    print(f"[STEP_09b] Loading mashmap sweeps at pi={args.pi_levels}", file=sys.stderr)
+    print(f"[STEP_Jb] Loading mashmap sweeps at pi={args.pi_levels}", file=sys.stderr)
     kmer_hits_by_pi: dict[int, dict[str, list]] = {}
     for pi in args.pi_levels:
         paf_path = args.mash_dir / f"windows_pi{pi}.paf"
@@ -338,12 +338,12 @@ def main():
         total = sum(len(v) for v in kmer_hits_by_pi[pi].values())
         print(f"  pi={pi}: {total} hits", file=sys.stderr)
 
-    print(f"[STEP_09b] Loading miniprot GFF: {args.miniprot_gff}", file=sys.stderr)
+    print(f"[STEP_Jb] Loading miniprot GFF: {args.miniprot_gff}", file=sys.stderr)
     protein_hits = parse_miniprot_gff(args.miniprot_gff)
     total_prot = sum(len(v) for v in protein_hits.values())
     print(f"  {total_prot} protein alignments across {len(protein_hits)} windows", file=sys.stderr)
 
-    print(f"[STEP_09b] Scoring tiles...", file=sys.stderr)
+    print(f"[STEP_Jb] Scoring tiles...", file=sys.stderr)
     scores = tile_windows(args.bp_bed, kmer_hits_by_pi, protein_hits,
                           args.tile_bp, args.pi_levels)
 
@@ -360,7 +360,7 @@ def main():
         for s in scores:
             fh.write(f"{s.bp_id}\t{s.window}\t{s.tile_start}\t{s.tile_end}\t"
                      f"{s.kmer_robustness}\t{s.protein_support}\t{s.n_proteins}\t{s.agreement}\n")
-    print(f"[STEP_09b] Wrote {len(scores)} tile rows -> {tile_tsv}", file=sys.stderr)
+    print(f"[STEP_Jb] Wrote {len(scores)} tile rows -> {tile_tsv}", file=sys.stderr)
 
     # Per-bp confidence
     conf_tsv = args.out / "breakpoint_confidence.tsv"
@@ -375,17 +375,17 @@ def main():
                      f"{cls['left_clean_frac']:.2f}\t{cls['right_clean_frac']:.2f}\t"
                      f"{cls['left_dominant']}\t{cls['right_dominant']}\t"
                      f"{cls['n_tiles']}\n")
-    print(f"[STEP_09b] Per-breakpoint confidence -> {conf_tsv}", file=sys.stderr)
-    print(f"\n[STEP_09b] Confidence summary:", file=sys.stderr)
+    print(f"[STEP_Jb] Per-breakpoint confidence -> {conf_tsv}", file=sys.stderr)
+    print(f"\n[STEP_Jb] Confidence summary:", file=sys.stderr)
     for conf, n in sorted(conf_counts.items()):
         print(f"  {conf:10s} {n:4d}", file=sys.stderr)
 
     # Visualize
     pdf_out = args.out / "evidence_tracks.pdf"
-    print(f"[STEP_09b] Plotting evidence tracks -> {pdf_out}", file=sys.stderr)
+    print(f"[STEP_Jb] Plotting evidence tracks -> {pdf_out}", file=sys.stderr)
     plot_evidence_tracks(tiles_by_bp, pdf_out)
 
-    print(f"\n[STEP_09b] Done.", file=sys.stderr)
+    print(f"\n[STEP_Jb] Done.", file=sys.stderr)
 
 
 if __name__ == "__main__":

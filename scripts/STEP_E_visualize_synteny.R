@@ -1,12 +1,12 @@
 #!/usr/bin/env Rscript
 # ============================================================================
-# STEP_04_visualize_synteny.R
+# STEP_E_visualize_synteny.R
 #   Produce two kinds of figures from the wfmash scaffold PAF:
 #     1. Pairwise dotplots (one per species pair) — quick visual check
 #     2. Linear synteny ribbons (Kuang et al. Figure 1B style) — publication plot
 #
 # Usage:
-#   Rscript STEP_04_visualize_synteny.R <tier>
+#   Rscript STEP_E_visualize_synteny.R <tier>
 # ============================================================================
 
 suppressPackageStartupMessages({
@@ -206,4 +206,4 @@ if (nrow(bp) > 0) {
   cat(sprintf("  Breakpoint summary: %s/breakpoint_summary.pdf\n", outdir))
 }
 
-cat("[STEP_04] Done.\n")
+cat("[STEP_E] Done.\n")

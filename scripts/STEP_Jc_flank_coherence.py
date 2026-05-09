@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-STEP_09c_flank_coherence.py
+STEP_Jc_flank_coherence.py
 
 COLLECT-THEN-REFINE flank coherence scoring for breakpoints.
 
@@ -8,7 +8,7 @@ Adapts hamburger's (djw533) clustering logic to breakpoint validation:
 
   COLLECT (lenient): For each species, miniprot with --outs=0.5 gives all
                      protein family hits across the whole genome.
-                     (Done in STEP_09c1, feeds into this step.)
+                     (Done in STEP_Jc1, feeds into this step.)
 
   EXTRACT:           For each breakpoint flank, pull the ordered list of
                      protein families present in that flank.
@@ -22,15 +22,15 @@ Adapts hamburger's (djw533) clustering logic to breakpoint validation:
 
 Output: per-flank coherence score + per-breakpoint confidence.
 
-This is a 3rd evidence layer on top of STEP_09b's k-mer + per-protein hits.
+This is a 3rd evidence layer on top of STEP_Jb's k-mer + per-protein hits.
 The power comes from requiring ORDER preservation across species, which
 random false positives cannot produce.
 
 Usage:
-    python3 STEP_09c_flank_coherence.py \
+    python3 STEP_Jc_flank_coherence.py \
         --bp-bed results/05_synteny_graph/breakpoints.bed \
         --wg-miniprot-dir results/09c_wg_miniprot/ \
-        --manifest config/species_manifest.tsv \
+        --manifest species/species_manifest.tsv \
         --out results/09c_flank_coherence/ \
         --flank-kb 100 \
         --min-families 3 \
@@ -135,7 +135,7 @@ def parse_manifest(path: Path) -> list[dict]:
 
 
 def parse_bp_bed(path: Path) -> list[dict]:
-    """Parse breakpoint BED produced by STEP_05."""
+    """Parse breakpoint BED produced by STEP_F."""
     bps = []
     with open(path) as fh:
         for line in fh:
@@ -387,7 +387,7 @@ def main():
                                   formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--bp-bed", required=True, type=Path)
     ap.add_argument("--wg-miniprot-dir", required=True, type=Path,
-                    help="Directory with <species_id>.miniprot.gff from STEP_09c1")
+                    help="Directory with <species_id>.miniprot.gff from STEP_Jc1")
     ap.add_argument("--manifest", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--flank-kb", type=int, default=100,
@@ -401,14 +401,14 @@ def main():
     args.out.mkdir(parents=True, exist_ok=True)
 
     # -------- Load data --------
-    print(f"[STEP_09c] Loading manifest: {args.manifest}", file=sys.stderr)
+    print(f"[STEP_Jc] Loading manifest: {args.manifest}", file=sys.stderr)
     species_list = parse_manifest(args.manifest)
 
-    print(f"[STEP_09c] Loading breakpoints: {args.bp_bed}", file=sys.stderr)
+    print(f"[STEP_Jc] Loading breakpoints: {args.bp_bed}", file=sys.stderr)
     bps = parse_bp_bed(args.bp_bed)
-    print(f"[STEP_09c]   {len(bps)} breakpoints loaded", file=sys.stderr)
+    print(f"[STEP_Jc]   {len(bps)} breakpoints loaded", file=sys.stderr)
 
-    print(f"[STEP_09c] Loading miniprot GFFs from {args.wg_miniprot_dir}",
+    print(f"[STEP_Jc] Loading miniprot GFFs from {args.wg_miniprot_dir}",
           file=sys.stderr)
     all_hits = []
     for sp in species_list:
@@ -422,14 +422,14 @@ def main():
         all_hits.extend(hits)
 
     if not all_hits:
-        print("[STEP_09c] ERROR: no miniprot hits loaded. "
-              "Did you run STEP_09c1?", file=sys.stderr)
+        print("[STEP_Jc] ERROR: no miniprot hits loaded. "
+              "Did you run STEP_Jc1?", file=sys.stderr)
         sys.exit(1)
 
     hits_by_chrom = index_by_chrom(all_hits)
 
     # -------- Extract flanks --------
-    print(f"\n[STEP_09c] Extracting ±{args.flank_kb} kb flanks around each breakpoint",
+    print(f"\n[STEP_Jc] Extracting ±{args.flank_kb} kb flanks around each breakpoint",
           file=sys.stderr)
     flanks = extract_flanks(bps, hits_by_chrom, args.flank_kb)
     flank_gene_counts = [len(f.genes) for f in flanks]
@@ -439,7 +439,7 @@ def main():
               f"max={max(flank_gene_counts)}", file=sys.stderr)
 
     # -------- Refine each flank --------
-    print(f"\n[STEP_09c] Refining flanks (co-linearity check, "
+    print(f"\n[STEP_Jc] Refining flanks (co-linearity check, "
           f"min_families={args.min_families}, max_gap={args.max_gap_genes})",
           file=sys.stderr)
     flank_results = {}
@@ -463,7 +463,7 @@ def main():
                      f"{res['best_match_species'] or ''}\t"
                      f"{res['best_match_score']}\t"
                      f"{','.join(res['query_families'][:10])}\n")
-    print(f"\n[STEP_09c] Per-flank table: {flank_tsv}", file=sys.stderr)
+    print(f"\n[STEP_Jc] Per-flank table: {flank_tsv}", file=sys.stderr)
 
     # -------- Write per-breakpoint confidence --------
     conf_tsv = args.out / "breakpoint_coherence.tsv"
@@ -490,8 +490,8 @@ def main():
                      f"{cls['left_n_matched']}\t{cls['right_n_matched']}\t"
                      f"{cls['left_n_genes']}\t{cls['right_n_genes']}\n")
 
-    print(f"[STEP_09c] Per-breakpoint coherence: {conf_tsv}", file=sys.stderr)
-    print(f"\n[STEP_09c] Coherence summary:", file=sys.stderr)
+    print(f"[STEP_Jc] Per-breakpoint coherence: {conf_tsv}", file=sys.stderr)
+    print(f"\n[STEP_Jc] Coherence summary:", file=sys.stderr)
     for conf, n in sorted(conf_counts.items()):
         print(f"  {conf:15s} {n:4d}", file=sys.stderr)
 
@@ -507,7 +507,7 @@ def main():
                          f"{m['target_start']}\t{m['target_end']}\t{m['orientation']}\t"
                          f"{m['n_matched']}\t{m['fraction']:.3f}\t"
                          f"{','.join(m['matched_families'])}\n")
-    print(f"[STEP_09c] Match details: {match_tsv}", file=sys.stderr)
+    print(f"[STEP_Jc] Match details: {match_tsv}", file=sys.stderr)
 
 
 if __name__ == "__main__":

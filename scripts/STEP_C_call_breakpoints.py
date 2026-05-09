@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-STEP_02_call_breakpoints.py
+STEP_C_call_breakpoints.py
 
 Parse wfmash scaffold PAF to call structural breakpoints between species pairs.
 Detects three event classes:
@@ -16,7 +16,7 @@ Output BED-like TSV with columns:
     event_type    left_block_id  right_block_id  gap_bp
 
 Usage:
-    python3 STEP_02_call_breakpoints.py \
+    python3 STEP_C_call_breakpoints.py \
         --paf results/01_wfmash/catfish_core.scaffolds.paf \
         --out results/02_breakpoints/
 """
@@ -232,11 +232,11 @@ def main():
 
     args.out.mkdir(parents=True, exist_ok=True)
 
-    print(f"[STEP_02] Parsing {args.paf}", file=sys.stderr)
+    print(f"[STEP_C] Parsing {args.paf}", file=sys.stderr)
     records = parse_paf(args.paf)
-    print(f"[STEP_02] Loaded {len(records)} scaffold records", file=sys.stderr)
+    print(f"[STEP_C] Loaded {len(records)} scaffold records", file=sys.stderr)
 
-    print(f"[STEP_02] Calling breakpoints...", file=sys.stderr)
+    print(f"[STEP_C] Calling breakpoints...", file=sys.stderr)
     events = call_all_breakpoints(records, args.min_block_bp, args.max_gap_bp)
     events = classify_fusion_fission(events)
 
@@ -247,14 +247,14 @@ def main():
             writer = csv.DictWriter(fh, fieldnames=list(events[0].keys()), delimiter="\t")
             writer.writeheader()
             writer.writerows(events)
-    print(f"[STEP_02] Wrote {len(events)} events -> {out_tsv}", file=sys.stderr)
+    print(f"[STEP_C] Wrote {len(events)} events -> {out_tsv}", file=sys.stderr)
 
     # Split by event type
     by_type: dict[str, list] = defaultdict(list)
     for e in events:
         by_type[e["event_type"]].append(e)
 
-    print("\n[STEP_02] Event summary:", file=sys.stderr)
+    print("\n[STEP_C] Event summary:", file=sys.stderr)
     for etype, elist in sorted(by_type.items()):
         print(f"  {etype:30s} {len(elist):6d}", file=sys.stderr)
         out_sub = args.out / f"breakpoints_{etype}.tsv"
@@ -279,7 +279,7 @@ def main():
                      f"{counts['INVERSION_breakpoint']}\t"
                      f"{counts['NONCOLLINEAR']}\t"
                      f"{counts['TOTAL']}\n")
-    print(f"[STEP_02] Per-pair summary -> {summary_path}", file=sys.stderr)
+    print(f"[STEP_C] Per-pair summary -> {summary_path}", file=sys.stderr)
 
     # Also emit BED files for downstream local refinement with minimap2
     bed_path = args.out / "breakpoint_windows.bed"
@@ -291,7 +291,7 @@ def main():
             fh.write(f"{e['query_species']}#1#{e['query_chrom']}\t"
                      f"{max(0, center - pad)}\t{center + pad}\t"
                      f"{e['event_type']}_{e['target_species']}_{e['left_target_chrom']}-{e['right_target_chrom']}\n")
-    print(f"[STEP_02] Windows for minimap2 refinement -> {bed_path}", file=sys.stderr)
+    print(f"[STEP_C] Windows for minimap2 refinement -> {bed_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":

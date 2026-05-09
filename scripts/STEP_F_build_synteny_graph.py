@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-STEP_05_build_synteny_graph.py
+STEP_F_build_synteny_graph.py
 
 STAGE B — Synteny graph construction from all-vs-all wfmash PAF.
 
@@ -21,7 +21,7 @@ multiple species appears as a shared structural feature in the graph topology.
 No pre-specified tree required.
 
 Usage:
-    python3 STEP_05_build_synteny_graph.py \
+    python3 STEP_F_build_synteny_graph.py \
         --paf results/01_wfmash/catfish_clarias.scaffolds.paf \
         --out results/05_synteny_graph/
 """
@@ -290,14 +290,14 @@ def main():
 
     args.out.mkdir(parents=True, exist_ok=True)
 
-    print(f"[STEP_05] Loading PAF: {args.paf}", file=sys.stderr)
+    print(f"[STEP_F] Loading PAF: {args.paf}", file=sys.stderr)
     blocks = parse_paf(args.paf)
-    print(f"[STEP_05] Loaded {len(blocks)} blocks", file=sys.stderr)
+    print(f"[STEP_F] Loaded {len(blocks)} blocks", file=sys.stderr)
 
-    print(f"[STEP_05] Identifying breakpoints...", file=sys.stderr)
+    print(f"[STEP_F] Identifying breakpoints...", file=sys.stderr)
     breakpoints = identify_breakpoints(blocks, args.min_block_bp, args.merge_within_bp)
     n_bp = sum(len(v) for v in breakpoints.values())
-    print(f"[STEP_05] Found {n_bp} breakpoints across {len(breakpoints)} chromosomes", file=sys.stderr)
+    print(f"[STEP_F] Found {n_bp} breakpoints across {len(breakpoints)} chromosomes", file=sys.stderr)
 
     # Write breakpoints BED
     bp_bed = args.out / "breakpoints.bed"
@@ -305,18 +305,18 @@ def main():
         for (sp, chrom), bps in sorted(breakpoints.items()):
             for i, bp in enumerate(bps):
                 fh.write(f"{sp}#1#{chrom}\t{max(0, bp - 100_000)}\t{bp + 100_000}\tbp_{sp}_{chrom}_{i:03d}\n")
-    print(f"[STEP_05] Breakpoint BED: {bp_bed}", file=sys.stderr)
+    print(f"[STEP_F] Breakpoint BED: {bp_bed}", file=sys.stderr)
 
-    print(f"[STEP_05] Building graph nodes...", file=sys.stderr)
+    print(f"[STEP_F] Building graph nodes...", file=sys.stderr)
     chrom_lengths = get_chrom_lengths(blocks)
     nodes = build_nodes(breakpoints, chrom_lengths)
-    print(f"[STEP_05] Created {len(nodes)} nodes (segments)", file=sys.stderr)
+    print(f"[STEP_F] Created {len(nodes)} nodes (segments)", file=sys.stderr)
 
-    print(f"[STEP_05] Building graph edges...", file=sys.stderr)
+    print(f"[STEP_F] Building graph edges...", file=sys.stderr)
     edges = build_edges(blocks, nodes)
-    print(f"[STEP_05] Created {len(edges)} edges", file=sys.stderr)
+    print(f"[STEP_F] Created {len(edges)} edges", file=sys.stderr)
 
-    print(f"[STEP_05] Building networkx graph...", file=sys.stderr)
+    print(f"[STEP_F] Building networkx graph...", file=sys.stderr)
     G = build_graph(nodes, edges)
 
     # Write nodes TSV
@@ -360,14 +360,14 @@ def main():
                               mean_identity=data["identity"],
                               strand=data["strand"])
     nx.write_gexf(G_simple, graph_gexf)
-    print(f"[STEP_05] GEXF (for Gephi/Cytoscape): {graph_gexf}", file=sys.stderr)
+    print(f"[STEP_F] GEXF (for Gephi/Cytoscape): {graph_gexf}", file=sys.stderr)
 
     # Pickle for downstream
     with open(args.out / "graph.pickle", "wb") as fh:
         pickle.dump({"graph": G, "nodes": nodes, "edges": edges,
                      "breakpoints": breakpoints}, fh)
 
-    print(f"\n[STEP_05] Graph summary:", file=sys.stderr)
+    print(f"\n[STEP_F] Graph summary:", file=sys.stderr)
     print(f"  Nodes:                  {G.number_of_nodes()}", file=sys.stderr)
     print(f"  Edges (homology links): {G.number_of_edges()}", file=sys.stderr)
     print(f"  Connected components:   {nx.number_connected_components(G)}", file=sys.stderr)
